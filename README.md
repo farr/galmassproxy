@@ -43,3 +43,10 @@ observations, in a manner consistent with the posterior on model
 parameters.
 
 The code in plots.py permits to generate plots illustrating the fit.
+
+License
+-------
+
+This code is released under the [MIT
+License](http://opensource.org/licenses/MIT).  See the file LICENSE
+for details.
