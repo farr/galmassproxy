@@ -45,7 +45,9 @@ class Posterior(object):
 
         denom = np.sum(1.0 / p['sigma']*p['sigma'] + self.obs_dproxies*self.obs_dproxies)
 
-        return np.log(p['sigma']) + 3.0*np.log(denom)
+        # Prior chosen to be flat in a,b space, where M = a*P + b
+        # Jacobian |d(a,b)/d(alpha,beta)| = 1/alpha^3
+        return np.log(p['sigma']) + 3.0*np.log(denom) - 3.0*np.log(np.abs(p['alpha']))
 
     def log_likelihood(self, p):
         p = self.to_params(p)
