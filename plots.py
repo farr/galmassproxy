@@ -96,4 +96,4 @@ def plot_posterior_masses(logpost, chain):
     pp.xlabel(r'$M$')
     pp.ylabel(r'$M_\mathrm{proxy}$')
 
-    pp.legend(loc='lpper left')
+    pp.legend(loc='upper left')

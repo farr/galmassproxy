@@ -47,7 +47,7 @@ class Posterior(object):
 
         # Prior chosen to be flat in a,b space, where M = a*P + b
         # Jacobian |d(a,b)/d(alpha,beta)| = 1/alpha^3
-        return np.log(p['sigma']) + 3.0*np.log(denom) - 3.0*np.log(np.abs(p['alpha']))
+        return np.log(p['sigma']) + 3.0*np.log(denom) - np.log(np.abs(p['alpha']))
 
     def log_likelihood(self, p):
         p = self.to_params(p)
