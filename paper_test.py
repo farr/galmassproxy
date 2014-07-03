@@ -47,6 +47,8 @@ def process_thin_flatchain(alpha, b, sigma, logpost, fc):
 
     return alpha_bias, np.sqrt(alpha_var), mbias, np.sqrt(mvar)
 
+bias_header = '# alpha_bias alpha_sigma m_bias m_sigma\n'
+
 if __name__ == '__main__':
     alpha = 0.8
     b = -5.0
