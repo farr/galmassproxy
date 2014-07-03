@@ -7,8 +7,8 @@ import posterior as pos
 
 def draw_data(alpha, b, sigma, return_mtrue = False):
     N = 22
-    dms = np.random.lognormal(mean=np.log(0.5), size=N)
-    dxs = np.random.lognormal(mean=np.log(0.5), size=N)
+    dms = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
+    dxs = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
 
     ms = np.random.uniform(low=np.log(1e13), high=np.log(1e15), size=N)
 
