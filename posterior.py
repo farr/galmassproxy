@@ -136,9 +136,9 @@ class Posterior(object):
     def alpha(self, p):
         p = self.to_params(p)
 
-        theta = p['theta']
+        cm = self._mm_cov_matrix(p)
 
-        return 1.0/np.tan(theta)
+        return 2.0*cm[0,1]/cm[0,0]
 
     def mass_estimate_mean_variance(self, p, pobs, dpobs):
         p = self.to_params(p)
