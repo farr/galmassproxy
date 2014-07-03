@@ -138,7 +138,7 @@ class Posterior(object):
 
         cm = self._mm_cov_matrix(p)
 
-        return 2.0*cm[0,1]/cm[0,0]
+        return cm[0,1]/cm[1,1]
 
     def mass_estimate_mean_variance(self, p, pobs, dpobs):
         p = self.to_params(p)
@@ -152,7 +152,7 @@ class Posterior(object):
         S00 = (cm[1,1] + dp2)/denom
         S01 = -cm[0,1]/denom
 
-        mean = p['mu'][0] - 2.0*S01*(pobs-p['mu'][1])/S00
+        mean = p['mu'][0] - S01*(pobs-p['mu'][1])/S00
         var = 1.0/S00
 
         return mean, var
