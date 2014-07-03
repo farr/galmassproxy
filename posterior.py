@@ -26,13 +26,17 @@ class Posterior(object):
 
     @property
     def dtype(self):
-        return np.dtype([('alpha', np.float),
-                         ('beta', np.float),
-                         ('sigma', np.float)])
+        return np.dtype([('mu', np.float, 2),
+                         ('sigmas', np.float, 2),
+                         ('theta', np.float)])
+
+    @property
+    def nparams(self):
+        return 5
 
     @property
     def pnames(self):
-        return [r'$\alpha', r'$\beta$', r'$\sigma$']
+        return [r'$\mu_M$', r'$\mu_x$', r'$\sigma_1$', r'$\sigma_2$', r'$\theta$']
 
     def to_params(self, p):
         return p.view(self.dtype).squeeze()
@@ -40,22 +44,71 @@ class Posterior(object):
     def log_prior(self, p):
         p = self.to_params(p)
 
-        if p['sigma'] <= 0.0:
+        if np.any(p['sigmas'] <= 0):
             return np.NINF
 
-        denom = np.sum(p['sigma']*p['sigma'] + self.obs_dproxies*self.obs_dproxies)
+        if p['theta'] < 0 or p['theta'] >= np.pi/2.0:
+            return np.NINF
 
-        return np.log(p['sigma']) - np.log(denom) - np.log(np.abs(p['alpha']))
+        return 0.0
+
+    def _mm_cov_matrix(self, p):
+        p = self.to_params(p)
+
+        t = p['theta']
+        ct = np.cos(t)
+        st = np.sin(t)
+
+        R = np.array([[ct, -st], [st, ct]])
+
+        cc = np.diag(p['sigmas']*p['sigmas'])
+
+        return np.dot(R, np.dot(cc, R.T))
 
     def log_likelihood(self, p):
         p = self.to_params(p)
     
-        proxy_mean = p['alpha'] * self.obs_masses + p['beta']
-        proxy_std = np.sqrt(p['alpha']*p['alpha']*self.obs_dmasses*self.obs_dmasses + \
-                            p['sigma']*p['sigma'] + \
-                            self.obs_dproxies*self.obs_dproxies)
+        mmc = self._mm_cov_matrix(p)
 
-        return np.sum(ss.norm.logpdf(self.obs_proxies, loc=proxy_mean, scale=proxy_std))
+        dm2 = self.obs_dmasses*self.obs_dmasses
+        dx2 = self.obs_dproxies*self.obs_dproxies
+
+        denoms = mmc[0,0]*mmc[1,1] + mmc[0,0]*dx2 - mmc[0,1]*mmc[0,1] + mmc[1,1]*dm2 + dm2*dx2
+        ci00 = (mmc[1,1]+dx2)/denoms
+        ci01 = -mmc[0,1]/denoms
+        ci11 = (mmc[0,0]+dm2)/denoms
+
+        idets = ci00*ci11 - ci01*ci01
+
+        mus = np.column_stack((self.obs_masses, self.obs_proxies)) - p['mu']
+
+        return np.sum(0.5*(np.log(idets) - np.log(2.0*np.pi)) - 0.5*(ci00*mus[:,0]*mus[:,0] + 2.0*ci01*mus[:,0]*mus[:,1] + ci11*mus[:,1]*mus[:,1]))
+
+    def pguess(self):
+        p0 = self.to_params(np.zeros(self.nparams))
+
+        pts = np.column_stack((self.obs_masses, self.obs_proxies))
+
+        mu = np.mean(pts, axis=0)
+        p0['mu'] = mu
+
+        cov = np.cov(pts, rowvar=0)
+
+        evals, evecs = np.linalg.eig(cov)
+
+        theta1 = np.arctan(evecs[0,1]/evecs[0,0])
+        theta2 = np.arctan(evecs[1,1]/evecs[1,0])
+
+        if theta1 > 0:
+            p0['sigmas'][0] = evals[0]
+            p0['sigmas'][1] = evals[1]
+            p0['theta'] = theta1
+        else:
+            p0['sigmas'][0] = evals[1]
+            p0['sigmas'][1] = evals[0]
+            p0['theta'] = theta2
+
+        return p0.reshape((1,)).view(np.float).squeeze()
 
     def __call__(self, p):
         lp = self.log_prior(p)
@@ -65,18 +118,43 @@ class Posterior(object):
         else:
             return lp + self.log_likelihood(p)
 
-    def mass_estimate(self, p, mobs, pobs, dmobs, dpobs):
+    def draw_data(self, p0, dms=None, dxs=None):
+        if dms is None or dxs is None:
+            dms = self.obs_dmasses
+            dxs = self.obs_dproxies
+
+        p0 = self.to_params(p0)
+
+        mu = p0['mu']
+        cov = self._mm_cov_matrix(p0)
+
+        msxs = np.random.multivariate_normal(mu, cov, size=dms.shape[0])
+        deltas = np.random.normal(loc=0, scale=np.column_stack((dms, dxs)))
+
+        return msxs[:,0]+deltas[:,0], msxs[:,1]+deltas[:,1], dms, dxs
+
+    def alpha(self, p):
         p = self.to_params(p)
-        a = p['alpha']
-        b = p['beta']
-        sig = p['sigma']
 
-        return (mobs*(sig*sig + dpobs*dpobs) + dmobs*dmobs*a*(pobs - b))/(a*a*dmobs*dmobs + sig*sig + dpobs*dpobs)
+        theta = p['theta']
 
-    def mass_variance_estimate(self, p, dmobs, dpobs):
+        return 1.0/np.tan(theta)
+
+    def mass_estimate_mean_variance(self, p, pobs, dpobs):
         p = self.to_params(p)
-        a = p['alpha']
-        b = p['beta']
-        sig = p['sigma']
 
-        return dmobs*dmobs*(sig*sig + dpobs*dpobs) / (a*a*dmobs*dmobs + sig*sig + dpobs*dpobs)
+        cm = self._mm_cov_matrix(p)
+        dp2 = dpobs*dpobs
+
+        denom = cm[0,0]*cm[1,1] + cm[0,0]*dp2 - cm[0,1]*cm[0,1]
+
+        # Components of (Sigma + dP)^(-1)
+        S00 = (cm[1,1] + dp2)/denom
+        S01 = -cm[0,1]/denom
+
+        mean = p['mu'][0] - 2.0*S01*(pobs-p['mu'][1])/S00
+        var = 1.0/S00
+
+        return mean, var
+        
+        
