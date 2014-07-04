@@ -65,12 +65,12 @@ if __name__ == '__main__':
             runner.run_mcmc(1000)
 
             try:
-                if runner.thin_flatchain.shape[0] > 1000:
+                if runner.thin_flatchain.shape[0] > 2000:
                     break
             except:
                 pass
         try:
-            fc = runner.thin_flatchain
+            fc = runner.thin_flatchain[-1000:,:]
         except:
             print 'Reached 10K iterations without convergence!'
 
