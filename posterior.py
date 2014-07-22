@@ -138,7 +138,13 @@ class Posterior(object):
 
         cm = self._mm_cov_matrix(p)
 
-        return cm[0,1]/cm[1,1]
+        evals, evecs = np.linalg.eigh(cm)
+
+        imax = np.argmax(evals)
+        v = evecs[:,imax]
+
+        # m = alpha*x + b
+        return v[0]/v[1]
 
     def mass_estimate_mean_variance(self, p, pobs, dpobs):
         p = self.to_params(p)
@@ -156,5 +162,3 @@ class Posterior(object):
         var = 1.0/S00
 
         return mean, var
-        
-        

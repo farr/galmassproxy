@@ -2,6 +2,7 @@
 
 import emcee
 import numpy as np
+import os.path as op
 import plotutils.runner as pr
 import posterior as pos
 
@@ -54,6 +55,10 @@ if __name__ == '__main__':
     b = -5.0
     sig = 0.3
     output = 'bias.dat'
+
+    if not op.isfile(output):
+        with open(output, 'w') as out:
+            out.write(bias_header)
 
     while True:
         data = draw_data(alpha, b, sig)
