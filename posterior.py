@@ -146,19 +146,16 @@ class Posterior(object):
         # m = alpha*x + b
         return v[0]/v[1]
 
-    def mass_estimate_mean_variance(self, p, pobs, dpobs):
+    def mass_proxy_estimate(self, p, pobs, dpobs):
         p = self.to_params(p)
-
         cm = self._mm_cov_matrix(p)
-        dp2 = dpobs*dpobs
 
-        denom = cm[0,0]*cm[1,1] + cm[0,0]*dp2 - cm[0,1]*cm[0,1]
+        sp = dpobs*dpobs
 
-        # Components of (Sigma + dP)^(-1)
-        S00 = (cm[1,1] + dp2)/denom
-        S01 = -cm[0,1]/denom
+        mt = p['mu'][0] + (pobs-p['mu'][1])*cm[1,0]/(sp+cm[1,1])
+        xt = (p['mu'][1]*sp + pobs*cm[1,1])/(sp + cm[1,1])
 
-        mean = p['mu'][0] - S01*(pobs-p['mu'][1])/S00
-        var = 1.0/S00
+        sm = cm[0,0] - cm[1,0]*cm[1,0]/(cm[1,1] + sp)
+        sx = sp*cm[1,1]/(cm[1,1] + sp)
 
-        return mean, var
+        return np.array([mt, xt]), np.array([sm, sx])

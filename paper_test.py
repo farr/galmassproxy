@@ -6,7 +6,7 @@ import os.path as op
 import plotutils.runner as pr
 import posterior as pos
 
-def draw_data(alpha, b, sigma, return_mtrue = False):
+def draw_data(alpha, b, sigma, return_mtrue = False, return_ptrue = False):
     N = 22
     dms = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
     dxs = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
@@ -18,10 +18,14 @@ def draw_data(alpha, b, sigma, return_mtrue = False):
     data = ms+np.random.normal(loc=0, scale=dms), xs+np.random.normal(loc=0, scale=dxs), \
            dms, dxs
 
+    rval = data
+
+    if return_ptrue:
+        rval = (xs, ) + rval
     if return_mtrue:
-        return (ms, ) + data
-    else:
-        return data
+        rval = (ms, ) + rval
+
+    return rval
 
 def process_thin_flatchain(alpha, b, sigma, logpost, fc):
     alphas = []
