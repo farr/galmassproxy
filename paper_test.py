@@ -6,12 +6,24 @@ import os.path as op
 import plotutils.runner as pr
 import posterior as pos
 
-def draw_data(alpha, b, sigma, return_mtrue = False, return_ptrue = False):
+# Observational error sizes from Richard's paper; should be applied to
+# sorted (smallest-to-largest) masses
+dms = np.array([ 0.07948718,  0.13670886,  0.14867424,  0.3384058 ,  0.21818182,
+                 0.25257732,  0.14150944,  0.1641791 ,  0.23916084,  0.19162011,
+                 0.1168    ,  0.13932584,  0.13492063,  0.10654008,  0.14329897,
+                 0.11134021,  0.12027398,  0.185     ,  0.05628476,  0.169375  ,
+                 0.25421687,  0.2027027 ])
+dxs = np.array([ 0.22858724,  0.29014214,  0.37205699,  0.45214178,  0.16864295,
+                 0.44537327,  0.21145289,  0.28158675,  0.20106134,  0.34335918,
+                 0.31692716,  0.17382953,  0.15172787,  0.24297976,  0.29024132,
+                 0.22649368,  0.32205503,  0.2647911 ,  0.21821011,  0.3049213 ,
+                 0.34063273,  0.4068833 ])
+
+def draw_data(alpha, b, sigma, return_mtrue = False, return_ptrue = False, dms=dms, dxs=dxs):
     N = 22
-    dms = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
-    dxs = np.random.lognormal(mean=np.log(0.5), sigma=0.25, size=N)
 
     ms = np.random.uniform(low=np.log(1e13), high=np.log(1e15), size=N)
+    ms = np.sort(ms) # Small to large, to match error terms
 
     xs = 1/alpha*ms - b/alpha + np.random.normal(loc=0, scale=sigma*np.log(10.0), size=N)
 
@@ -42,7 +54,7 @@ def process_thin_flatchain(alpha, b, sigma, logpost, fc):
         post_ms = []
         post_vs = []
         for par in fc:
-            mu, s2 = logpost.mass_estimate_mean_variance(par, p, dp)
+            (mu, _), (s2, _) = logpost.mass_proxy_estimate(par, p, dp)
             post_ms.append(mu)
             post_vs.append(s2)
         mbias.append(m - np.mean(post_ms))
@@ -56,7 +68,7 @@ bias_header = '# alpha_bias alpha_sigma m_bias m_sigma\n'
 
 if __name__ == '__main__':
     alpha = 0.8
-    b = -5.0
+    b = 5.0
     sig = 0.3
     output = 'bias.dat'
 
