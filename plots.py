@@ -123,3 +123,31 @@ def plot_mass_corrections(logpost, chain, obs_proxies, obs_dproxies, proxies, ma
         with open(op.join(outdir, 'mcorr.dat'), 'w') as out:
             out.write('# ln(X)\tln(M)\tln(X_obs)\tdX_obs/X_obs\tln(M_pred)\tdM_pred/M_pred\n')
             np.savetxt(out, np.column_stack((proxies, masses, obs_proxies, obs_dproxies, pred_ms, pred_dms)))
+
+def plot_fit(logpost, chain, outdir=None):
+    if outdir is not None:
+        setup()
+        axes()
+
+    flatchain = chain.reshape((-1, chain.shape[2]))
+
+    xs = np.sort(logpost.obs_proxies)
+
+    mean_ys = 0
+    for p in flatchain:
+        mean_ys += logpost.fit_line(p, xs)
+    mean_ys /= flatchain.shape[0]
+
+    ys = []
+    for i in range(10):
+        p = flatchain[np.random.randint(flatchain.shape[0]), :]
+        ys.append(logpost.fit_line(p, xs))
+    ys = np.array(ys)
+
+    logerrorbar(logpost.obs_proxies, logpost.obs_masses, xerr=logpost.obs_dproxies, yerr=logpost.obs_dmasses, color='k', fmt='.')
+    pp.plot(np.exp(xs), np.exp(mean_ys), '-k')
+    for y in ys:
+        pp.plot(np.exp(xs), np.exp(y), '-k', alpha=0.1)
+
+    if outdir is not None:
+        pp.savefig(op.join(outdir, 'fit.pdf'))

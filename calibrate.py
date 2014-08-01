@@ -4,6 +4,7 @@ import argparse
 import emcee
 import numpy as np
 import os.path as op
+import plots
 import plotutils.runner as pr
 import posterior as pos
 
@@ -26,3 +27,5 @@ if __name__ == '__main__':
     sampler = emcee.EnsembleSampler(128, logpost.nparams, logpost)
     runner = pr.EnsembleSamplerRunner(sampler, logpost.pguess() + 1e-3*np.random.randn(128, logpost.nparams))
     runner.run_to_neff(16, savedir=args.outdir)
+
+    plots.plot_fit(logpost, runner.thin_chain, outdir=args.outdir)

@@ -220,6 +220,19 @@ class Posterior(object):
         # m = alpha*x + b
         return v[0]/v[1]
 
+    def fit_line(self, p, xs):
+        r"""Returns the 'fit line' represented by the longer pricipal axis of
+        the error ellipse evaluated at the given proxy values.
+
+        """
+        p = self.to_params(p)
+        alpha = self.alpha(p)
+
+        ys = alpha*(xs - p['mu'][1]) + p['mu'][0]
+
+        return ys
+        
+
     def mass_proxy_estimate(self, p, pobs, dpobs):
         r"""Returns ``((mu_M, mu_X), (s2_M, s2_X))``, where the ``mu``s are the
         (Gaussian) posterior mean and the ``s2``s are the (Gaussian)
