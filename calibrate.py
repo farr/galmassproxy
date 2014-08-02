@@ -1,5 +1,27 @@
 #!/usr/bin/env python
 
+r"""calibrate.py
+
+Run this program to produce a calibrated generative model for the
+mass-proxy relationship in a data set.  It expects a data file
+containing a header line with at least the entries 'mass', 'proxy',
+'dm/m', and 'dp/p', followed by one line for each measurement of the
+quantities and observational errors:
+
+mass proxy dm/m dp/p
+m1   p1    dm1  dp1
+...
+
+additional labelled columns are ignored.
+
+Running the program produces output in a directory that will allow
+subsequent estimates of masses from proxy observations using the
+calibrated model.  In that directory are pickled versions of the
+generative posterior and MCMC samples, information to enable
+continuation of the fit if desired, and a PDF plot of the fit.
+
+"""
+
 import argparse
 import emcee
 import numpy as np
@@ -16,14 +38,9 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    # Data file should have 
-    #
-    # Mobs dM/M Xobs dX/X
-    # 
-    # format
-    data = np.loadtxt(args.data)
+    data = np.genfromtxt(args.data, names=True)
     
-    logpost = pos.Posterior(np.log(data[:,0]), np.log(data[:,2]), data[:,1], data[:,3])
+    logpost = pos.Posterior(np.log(data['mass']), np.log(data['proxy']), data['dm/m'], data['dp/p'])
     sampler = emcee.EnsembleSampler(128, logpost.nparams, logpost)
     runner = pr.EnsembleSamplerRunner(sampler, logpost.pguess() + 1e-3*np.random.randn(128, logpost.nparams))
     runner.run_to_neff(16, savedir=args.outdir)
