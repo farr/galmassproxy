@@ -149,5 +149,8 @@ def plot_fit(logpost, chain, outdir=None):
     for y in ys:
         pp.plot(np.exp(xs), np.exp(y), '-k', alpha=0.1)
 
+    pp.xlabel(r'$X$')
+    pp.ylabel(r'$M$')
+
     if outdir is not None:
         pp.savefig(op.join(outdir, 'fit.pdf'))
