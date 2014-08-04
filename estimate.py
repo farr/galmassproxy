@@ -44,7 +44,7 @@ if __name__ == '__main__':
     with bz2.BZ2File(op.join(args.caldir, 'logpost.pkl.bz2'), 'r') as inp:
         logpost = pickle.load(inp)
 
-    flatchain = runner.thin_flatchain[-2048:,:]
+    flatchain = runner.thin_chain[:,-16:,:].reshape((-1, runner.chain.shape[2]))
 
     data = np.genfromtxt(args.proxyfile, names=True)
 

@@ -50,4 +50,4 @@ if __name__ == '__main__':
     with bz2.BZ2File(op.join(args.outdir, 'logpost.pkl.bz2'), 'w') as out:
         pickle.dump(logpost, out)
 
-    plots.plot_fit(logpost, runner.thin_chain, outdir=args.outdir)
+    plots.plot_fit(logpost, runner.thin_chain[:,-16:,:], outdir=args.outdir)
