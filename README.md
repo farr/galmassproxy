@@ -31,7 +31,7 @@ First, one calibrates a mass-proxy relationship using
 
 The file of observational data should be a text (or gzipped/bzipped
 text) file with columns.  The first line is a header line, and should
-contain at least the <code>mass</code>, <code>proxy</code>,
+contain at least the headers <code>mass</code>, <code>proxy</code>,
 <code>dm</code>, and <code>dp</code> giving the measured mass and
 proxy values, together with the (relative) observational uncertainties
 in these quantities.  Various output files will be placed in the
