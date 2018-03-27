@@ -42,7 +42,7 @@ the regression posterior.
 
 Alternately, the package comes with several pre-calibrated mass-proxy
 relationships, as described in
-[arXiv:XXXX.XXXX](http://arxiv.org/abs/XXXX.XXXX); these can be found
+[Pearson, et al. (2015)](https://ui.adsabs.harvard.edu/#abs/2015MNRAS.449.3082P/abstract); these can be found
 in subdirectories of the <code>data</code> directory.
 
 Once one has a directory of calbration results, observations of the
@@ -62,7 +62,7 @@ The Model
 ---------
 
 The model used for the regression is described in detail in
-[arXiv:XXXX.XXXX](http://arxiv.org/abs/XXXX.XXXX), and implemented in
+[Pearson, et al. (2015)](https://ui.adsabs.harvard.edu/#abs/2015MNRAS.449.3082P/abstract), and implemented in
 the extensively-commented <code>posterior.py</code>.  The model
 assumes that the true masses and proxies are drawn from a correlated,
 multivariate log-normal distribution; additionally, observed values
@@ -77,7 +77,7 @@ illustrating various aspects of the fit.
 
 The code in <code>paper_test.py</code> implements the synthetic data
 set and tests described in
-[arXiv:XXXX.XXXX](http://arxiv.org/abs/XXXX.XXXX).
+[Pearson, et al. (2015)](https://ui.adsabs.harvard.edu/#abs/2015MNRAS.449.3082P/abstract).
 
 License
 -------
